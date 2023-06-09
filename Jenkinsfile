@@ -52,7 +52,7 @@
 //     }
 // }
 
-#!/usr/bin/env groovy
+// #!/usr/bin/env groovy
 
 pipeline {
     agent none

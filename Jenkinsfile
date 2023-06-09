@@ -1,20 +1,20 @@
 #!/usr/bin/env groovy
 
-library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
-    [$class: 'GitSCMSource',
-     remote: 'https://gitlab.com/nanuchi/jenkins-shared-library.git',
-     credentialsId: 'gitlab-credentials'
-    ]
-)
+// library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
+//     [$class: 'GitSCMSource',
+//      remote: 'https://gitlab.com/nanuchi/jenkins-shared-library.git',
+//      credentialsId: 'gitlab-credentials'
+//     ]
+// )
 
 pipeline {
     agent any
     tools {
-        maven 'Maven'
+        maven "maven-3.9"
     }
-    environment {
-        IMAGE_NAME = 'nanajanashia/demo-app:java-maven-2.0'
-    }
+    // environment {
+    //     IMAGE_NAME = 'nanajanashia/demo-app:java-maven-2.0'
+    // }
     stages {
         stage('build app') {
             steps {

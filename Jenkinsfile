@@ -68,7 +68,7 @@ pipeline {
         maven "maven-3.9"
     }
     environment {
-        IMAGE_NAME = 'nanajanashia/demo-app:java-maven-2.0'
+        IMAGE_NAME = 'emmanuelkamto/demo-app:jma-1.0'
     }
     stages {
         stage('build app') {

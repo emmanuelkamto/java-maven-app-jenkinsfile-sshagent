@@ -2,8 +2,8 @@
 
 library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
     [$class: 'GitSCMSource',
-     remote: 'https://gitlab.com/nanuchi/jenkins-shared-library.git',
-     credentialsId: 'gitlab-credentials'
+     remote: 'https://github.com/emmanuelkamto/jenkins-shared-library.git',
+     credentialsId: 'github-credential'
     ]
 )
 
@@ -13,7 +13,7 @@ pipeline {
         maven "maven-3.9"
     }
     environment {
-        IMAGE_NAME = 'nanajanashia/demo-app:java-maven-2.0'
+        IMAGE_NAME = 'emmanuelkamto/demo-app:jma-1.0'
     }
     stages {
         stage('build app') {
@@ -34,14 +34,39 @@ pipeline {
                 }
             }
         }
+        stage('provision server') {
+            environment {
+                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
+                AWS_SECRET_ACCESS_KEY = ('jenkins_aws_secret_access_key')
+                TF_VAR_env_prefix = 'test'
+            }
+            steps {
+                script {
+                    dir('terraform') {
+                        sh "terrafrom init"
+                        sh "terraform apply --auto-approve"
+                        EC2_PUBLIC_IP = sh(
+                            script: "terraform output ec2_public_ip"
+                            returnStdout: true
+                            ).trim()
+                    }
+                }
+            }
+        }
         stage('deploy') {
             steps {
                 script {
-                   echo 'deploying docker image to EC2...'
-                   def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
-                   def ec2Instance = "ec2-user@18.234.217.253"
 
-                   sshagent(['ec2-server-key']) {
+                    echo 'waiting for EC2 server to initialize'
+                    sleep(time: 90; unit:"SECONDS")
+
+                    echo 'deploying docker image to EC2...'
+                    echo '${EC2_PUBLIC_IP}'
+
+                    def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
+                    def ec2Instance = "ec2-user@${EC2_PUBLIC_IP}"
+
+                    sshagent(['server-ssh-key']) {
                        sh "scp -o StrictHostKeyChecking=no server-cmds.sh ${ec2Instance}:/home/ec2-user"
                        sh "scp -o StrictHostKeyChecking=no docker-compose.yaml ${ec2Instance}:/home/ec2-user"
                        sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
